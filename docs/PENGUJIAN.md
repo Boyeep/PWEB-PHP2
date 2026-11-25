@@ -21,6 +21,12 @@ Gunakan `--demo` pada SQLite untuk memeriksa isolasi browser. Skrip membuat akun
 | PHP 8.2 dan MariaDB 10.4 | 58 pemeriksaan HTTP lulus |
 | Chrome | Login cepat, tombol tampilkan kata sandi, Bootstrap, dan halaman HTTP 403 lulus. Dasbor, daftar pengguna, formulir, dan blog diperiksa pada lebar 375, 768, dan 1280 piksel. |
 
+## Hasil deployment
+
+Pada [demo publik](https://pweb-php2.vercel.app/), 63 pemeriksaan HTTP lulus, termasuk atribut cookie HTTPS, alur pendaftaran, perubahan hak akses, dan isolasi browser. Pengujian Chrome pada lebar 375, 768, dan 1280 piksel juga lulus. Ketiga gambar pada [artikel](https://pweb-php2.vercel.app/blog) dapat diunduh.
+
+Saat dua permintaan tambah akun dikirim bersamaan dalam satu ruang demo, satu mendapat HTTP 303 dan satu mendapat HTTP 409. Permintaan kedua berhasil saat dicoba ulang. Kedua akun dapat ditemukan dalam daftar.
+
 ## Cakupan
 
 | Skenario | Hasil yang diperiksa |

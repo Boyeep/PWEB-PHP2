@@ -50,6 +50,6 @@ return userPage($db, $path, $post, $actor);</code></pre>
     <h2>6. Menjalankan dan menguji aplikasi</h2>
     <p>Demo lokal dapat dijalankan dengan <code>php -S localhost:8000 -t public</code>. SQLite membuat data contoh secara otomatis. Untuk MySQL atau MariaDB, impor <code>database/mysql.sql</code>, isi konfigurasi dari <code>.env.example</code>, lalu buat akun Admin melalui skrip CLI.</p>
     <p>Demo Vercel memakai SQLite dengan snapshot privat di Vercel Blob. Cookie ruang demo memungkinkan perubahan bertahan ketika pengguna keluar lalu beralih peran di browser yang sama. Cookie autentikasi terpisah. Penulisan snapshot memakai ETag untuk mencegah dua perubahan bersamaan menimpa satu sama lain. Ruang demo berlaku hingga tujuh hari dan dapat dicoba dengan data fiktif.</p>
-    <p>Pengujian mencakup login empat peran, CRUD, pencarian, pembatasan akses, unggah ulang dokumen, dan keluar akun. Langkah pengujian dan tangkapan layar tambah serta edit tersedia di repositori.</p>
+    <p>Pengujian mencakup login empat peran, CRUD, pencarian, pembatasan akses, unggah ulang dokumen, dan keluar akun. Sebanyak 62 pemeriksaan HTTP lulus di SQLite lokal, 58 di MariaDB, dan 63 di demo publik. Tampilan juga diperiksa dengan Chrome pada tiga lebar layar.</p>
     <p><a href="https://github.com/Boyeep/PWEB-PHP2/blob/main/docs/PENGUJIAN.md">Lihat hasil pengujian</a> · <a href="https://github.com/Boyeep/PWEB-PHP2/tree/main/docs/screenshots">Lihat tangkapan layar</a></p>
 </article>
