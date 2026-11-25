@@ -1,0 +1,55 @@
+<article class="blog-content" lang="id">
+    <h1>Membuat Login Multi-Peran dan CRUD Akun PPDB dengan PHP</h1>
+    <p>Saya membuat <strong>RuangAkses</strong>, portal simulasi PPDB SMK Nusantara dengan PHP, PDO, dan Bootstrap 5. Satu formulir login melayani Admin, Panitia, Verifikator, dan Siswa. Setelah masuk, setiap pengguna diarahkan ke dasbor yang sesuai dengan peran akunnya.</p>
+    <p><a href="https://pweb-php2.vercel.app/">Coba demo RuangAkses</a> · <a href="https://github.com/Boyeep/PWEB-PHP2">Lihat kode di GitHub</a></p>
+
+    <h2>1. Menetapkan hak akses</h2>
+    <p>Saya mulai dari tindakan yang dibutuhkan setiap peran. Keputusan ini menentukan menu, tujuan setelah login, dan pemeriksaan izin pada setiap rute.</p>
+    <table>
+        <caption>Pembagian peran pada RuangAkses</caption>
+        <thead><tr><th scope="col">Peran</th><th scope="col">Hak akses</th></tr></thead>
+        <tbody>
+            <tr><th scope="row">Admin</th><td>Mengelola akun, melihat aktivitas akun, serta membuka data dan dokumen pendaftaran.</td></tr>
+            <tr><th scope="row">Panitia</th><td>Memantau calon siswa dan status pendaftaran. Detail yang ditampilkan terbatas pada kebutuhan pemantauan.</td></tr>
+            <tr><th scope="row">Verifikator</th><td>Membuka antrean, mengunduh dokumen, dan menyimpan keputusan pemeriksaan.</td></tr>
+            <tr><th scope="row">Siswa</th><td>Mengisi pendaftaran sendiri, membaca hasil, dan memperbaiki berkas saat diminta.</td></tr>
+        </tbody>
+    </table>
+    <figure>
+        <img src="https://raw.githubusercontent.com/Boyeep/PWEB-PHP2/main/docs/screenshots/dashboard-admin.webp" width="1440" height="900" alt="Dasbor Admin dengan ringkasan akun dan aktivitas">
+        <figcaption>Ringkasan dasbor dihitung dari akun yang tersimpan.</figcaption>
+    </figure>
+
+    <h2>2. Menyusun tabel akun dan pendaftaran</h2>
+    <p>Tabel <code>users</code> menyimpan nama, email unik, hash kata sandi, peran, dan versi autentikasi. Tabel <code>siswa</code> menyimpan NISN serta nomor telepon. Tabel <code>pendaftaran</code> menyimpan pilihan jurusan, dokumen, status, dan catatan. Ketiganya terhubung melalui ID akun. Foreign key dengan <code>ON DELETE RESTRICT</code> melindungi akun dengan riwayat pendaftaran.</p>
+    <p>Dua tabel lain menyimpan sesi dan aktivitas. <code>app_sessions</code> menggunakan hash ID sesi sebagai kunci, sedangkan <code>activity_logs</code> mencatat tindakan administratif. Schema MySQL dan SQLite tersedia di direktori <code>database</code>.</p>
+
+    <h2>3. Melakukan login dan memeriksa peran</h2>
+    <p>PHP mencari email menggunakan prepared statement PDO lalu memeriksa kata sandi dengan <code>password_verify()</code>. Setelah verifikasi berhasil, PHP membuat ulang ID sesi dan mencatat ID akun serta versi autentikasi. Peran dibaca kembali dari database pada setiap permintaan. Perubahan email, kata sandi, atau peran menaikkan versi autentikasi agar sesi lama kehilangan akses.</p>
+    <pre><code class="language-php">requireRole($actor, 'admin');
+return userPage($db, $path, $post, $actor);</code></pre>
+    <p>Pemeriksaan ini dijalankan di server sebelum halaman pengguna diproses. Pengguna tanpa sesi diarahkan ke halaman masuk. Pengguna dengan sesi dan peran yang tidak sesuai mendapat HTTP 403. Halaman siswa juga memeriksa kepemilikan pendaftaran sebelum menampilkan data atau mengizinkan unduhan.</p>
+    <figure>
+        <img src="https://raw.githubusercontent.com/Boyeep/PWEB-PHP2/main/docs/screenshots/rbac-403.webp" width="1440" height="900" alt="Panitia menerima halaman Akses ditolak ketika membuka manajemen pengguna" loading="lazy">
+        <figcaption>Akun Panitia menerima HTTP 403 saat membuka menu yang khusus untuk Admin.</figcaption>
+    </figure>
+
+    <h2>4. Membuat daftar, pencarian, dan formulir akun</h2>
+    <p>Admin dapat mencari dengan nama, email, atau ID, lalu menggabungkan pencarian dengan filter peran. Halaman daftar menampilkan paling banyak 12 akun per halaman. Input pencarian dan peran dikirim sebagai parameter terpisah dari SQL. Nilai yang berasal dari pengguna di-escape saat ditampilkan di HTML.</p>
+    <p>Formulir tambah memeriksa nama, keunikan email, pilihan peran, dan panjang kata sandi. Saat mengedit akun, kolom kata sandi boleh dikosongkan untuk mempertahankan hash lama. Kata sandi baru diproses dengan <code>password_hash()</code> sebelum masuk ke database.</p>
+    <figure>
+        <img src="https://raw.githubusercontent.com/Boyeep/PWEB-PHP2/main/docs/screenshots/manajemen-pengguna.webp" width="1440" height="900" alt="Daftar pengguna dengan pencarian, filter peran, dan tindakan Edit serta Hapus" loading="lazy">
+        <figcaption>Admin dapat menggabungkan pencarian dan filter peran dalam daftar pengguna.</figcaption>
+    </figure>
+    <p>Penghapusan memerlukan konfirmasi, permintaan POST, dan token CSRF. Sistem melindungi akun yang sedang dipakai, Admin terakhir, dan akun dengan pendaftaran. Pengecekan hak akses, relasi, dan perubahan data berlangsung dalam transaksi. Token CSRF juga digunakan pada login, logout, dan pengiriman formulir lain.</p>
+
+    <h2>5. Menghubungkan akun dengan proses PPDB</h2>
+    <p>Siswa mengisi NISN dan nomor telepon, memilih jurusan, serta mengunggah dokumen PDF, JPG, atau PNG hingga 1 MB. PHP memeriksa tipe berkas dan menyimpan isinya bersama pendaftaran. Aplikasi menyajikan dokumen sebagai unduhan setelah memeriksa izin pada server.</p>
+    <p>Panitia dapat memantau antrean berdasarkan status. Verifikator dapat menetapkan status <strong>Terverifikasi</strong> atau <strong>Perlu revisi</strong>. Jika diperlukan revisi, siswa membaca catatan dan mengirim dokumen pengganti. Pendaftaran kemudian kembali ke antrean untuk diperiksa.</p>
+
+    <h2>6. Menjalankan dan menguji aplikasi</h2>
+    <p>Demo lokal dapat dijalankan dengan <code>php -S localhost:8000 -t public</code>. SQLite membuat data contoh secara otomatis. Untuk MySQL atau MariaDB, impor <code>database/mysql.sql</code>, isi konfigurasi dari <code>.env.example</code>, lalu buat akun Admin melalui skrip CLI.</p>
+    <p>Demo Vercel memakai SQLite dengan snapshot privat di Vercel Blob. Cookie ruang demo memungkinkan perubahan bertahan ketika pengguna keluar lalu beralih peran di browser yang sama. Cookie autentikasi terpisah. Penulisan snapshot memakai ETag untuk mencegah dua perubahan bersamaan menimpa satu sama lain. Ruang demo berlaku hingga tujuh hari dan dapat dicoba dengan data fiktif.</p>
+    <p>Pengujian mencakup login empat peran, CRUD, pencarian, pembatasan akses, unggah ulang dokumen, dan keluar akun. Langkah pengujian dan tangkapan layar tambah serta edit tersedia di repositori.</p>
+    <p><a href="https://github.com/Boyeep/PWEB-PHP2/blob/main/docs/PENGUJIAN.md">Lihat hasil pengujian</a> · <a href="https://github.com/Boyeep/PWEB-PHP2/tree/main/docs/screenshots">Lihat tangkapan layar</a></p>
+</article>

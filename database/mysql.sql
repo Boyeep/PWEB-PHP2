@@ -1,0 +1,52 @@
+CREATE DATABASE IF NOT EXISTS ruangakses CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE ruangakses;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nama_lengkap VARCHAR(150) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('admin','panitia','verifikator','siswa') NOT NULL DEFAULT 'siswa',
+    auth_version INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX users_role (role)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS siswa (
+    user_id INT UNSIGNED PRIMARY KEY,
+    nisn VARCHAR(10) NOT NULL UNIQUE,
+    no_hp VARCHAR(20) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS pendaftaran (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL UNIQUE,
+    jurusan VARCHAR(40) NOT NULL,
+    status ENUM('menunggu','terverifikasi','perlu_revisi') NOT NULL DEFAULT 'menunggu',
+    dokumen MEDIUMBLOB,
+    dokumen_mime VARCHAR(32),
+    catatan VARCHAR(250) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED,
+    aktivitas VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS app_sessions (
+    id_hash CHAR(64) PRIMARY KEY,
+    payload BLOB NOT NULL,
+    expires_at BIGINT NOT NULL,
+    INDEX sessions_expiry (expires_at)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS app_lock (id INT PRIMARY KEY) ENGINE=InnoDB;
+INSERT IGNORE INTO app_lock (id) VALUES (1);

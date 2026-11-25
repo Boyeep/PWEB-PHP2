@@ -1,0 +1,6 @@
+.git
+.env*
+storage
+tests
+docs/screenshots
+bin
